@@ -1,10 +1,11 @@
 'use strict';
 
 class Todo {
-	constructor(form, input, todoList, todoCompleted){
+	constructor(form, input, todoList, todoContainer, todoCompleted){
 		this.form = document.querySelector(form);
 		this.input = document.querySelector(input);
 		this.todoList = document.querySelector(todoList);
+		this.todoContainer = document.querySelector(todoContainer);
 		this.todoCompleted = document.querySelector(todoCompleted);
 		this.todoData = new Map(JSON.parse(localStorage.getItem('todoList')));
 	}
@@ -23,7 +24,7 @@ class Todo {
 	createItem(todo){
 		const li = document.createElement('li');
 		li.classList.add('todo-item');
-		//li.key = todo.key;
+		li.key = todo.key;
 		li.insertAdjacentHTML('beforeend', `
 			<span class="text-todo">${todo.value}</span>
 			<div class="todo-buttons">
@@ -42,7 +43,7 @@ class Todo {
 
 	addTodo(e){
 		e.preventDefault();
-		if(this.input.value.trim()){
+		if(this.input.value.trim() !== ''){
 			const newTodo = {
 				value: this.input.value,
 				completed: false,
@@ -51,6 +52,8 @@ class Todo {
 			this.todoData.set(newTodo.key, newTodo);
 
 			this.render();
+		} else {
+			alert('Пустое поле!');
 		}
 		this.input.value = '';
 	}
@@ -59,16 +62,37 @@ class Todo {
 		return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 	}
 
-	deleteItem(){
-
+	deleteItem(index){
+		this.todoData.delete(index);
+		this.addToStorage();
 	}
 
-	completedItem(){
-
+	completedItem(item){
+		item.completed = !item.completed;
+		this.render();
 	}
 	
 	handler(){
+		this.todoContainer.addEventListener('click', (event) => {
+			let target = event.target;
 
+			if(target.matches('.todo-complete')){
+				target = target.closest('.todo-item');//пришлось оставить так, а то иначе не работало
+				this.todoData.forEach(item => {
+					if(item.key === target.key){
+						this.completedItem(item);
+					}
+				});
+			} else if(target.matches('.todo-remove')){
+				target = target.closest('.todo-item');//пришлось оставить так, а то иначе не работало
+				this.todoData.forEach((item, index) => {
+					if(item.key === target.key){
+						this.deleteItem(index);
+						target.remove();
+					}
+				});
+			}
+		});
 	}
 
 	init(){
@@ -77,6 +101,7 @@ class Todo {
 	}
 }
 
-const todo = new Todo('.todo-control', '.header-input', '.todo-list', '.todo-completed',);
+const todo = new Todo('.todo-control', '.header-input', '.todo-list', '.todo-container', '.todo-completed');
 
 todo.init();
+todo.handler();
