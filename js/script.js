@@ -24,6 +24,7 @@ class Todo {
 	createItem(todo){
 		const li = document.createElement('li');
 		li.classList.add('todo-item');
+		li.contentEditable = 'false';
 		li.key = todo.key;
 		li.insertAdjacentHTML('beforeend', `
 			<span class="text-todo">${todo.value}</span>
@@ -69,26 +70,62 @@ class Todo {
 
 	completedItem(item){
 		item.completed = !item.completed;
+		
 		this.render();
+	}
+
+	animationRemoveItem(todoItem){
+		todoItem.style.transition = 'all .3s linear';
+		todoItem.style.transform = 'scale(0)';
+	}
+
+	animationCompletedItem(todoItem){
+		todoItem.style.transition = 'all .2s linear';
+		todoItem.style.opacity = '0';
+	}
+
+	editItem(todoItem, spanItem, item){
+		if(todoItem.contentEditable === 'false'){
+			todoItem.contentEditable = 'true';
+			todoItem.style.border = '2px solid black';
+		} else {
+			todoItem.contentEditable = 'false';
+			todoItem.style.border = 'none';
+			item.value = spanItem.innerHTML;
+			this.addToStorage();
+		}
 	}
 	
 	handler(){
 		this.todoContainer.addEventListener('click', (event) => {
-			let target = event.target;
+			const target = event.target,
+				todoItem = target.closest('.todo-item');
+
 
 			if(target.matches('.todo-complete')){
-				target = target.closest('.todo-item');//пришлось оставить так, а то иначе не работало
 				this.todoData.forEach(item => {
-					if(item.key === target.key){
-						this.completedItem(item);
+					if(item.key === todoItem.key){
+						this.animationCompletedItem(todoItem);
+						setTimeout(() => {
+							this.completedItem(item);
+						}, 500);
 					}
 				});
-			} else if(target.matches('.todo-remove')){
-				target = target.closest('.todo-item');//пришлось оставить так, а то иначе не работало
+			} else if(target.matches('.todo-remove')){	
 				this.todoData.forEach((item, index) => {
-					if(item.key === target.key){
+					if(item.key === todoItem.key){
+						this.animationRemoveItem(todoItem);
 						this.deleteItem(index);
-						target.remove();
+						setTimeout(() => {	
+							todoItem.remove();
+						}, 500);
+					}
+				});
+			} else if(target.matches('.todo-edit')){	
+				this.todoData.forEach((item) => {
+					if(item.key === todoItem.key){
+						const spanItem = todoItem.querySelector('.text-todo');
+						this.editItem(todoItem, spanItem, item);
 					}
 				});
 			}
