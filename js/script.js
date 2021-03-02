@@ -87,12 +87,19 @@ class Todo {
 	editItem(todoItem, spanItem, item){
 		if(todoItem.contentEditable === 'false'){
 			todoItem.contentEditable = 'true';
+			todoItem.focus();
 			todoItem.style.border = '2px solid black';
 		} else {
 			todoItem.contentEditable = 'false';
 			todoItem.style.border = 'none';
-			item.value = spanItem.innerHTML;
-			this.addToStorage();
+			if(spanItem === null){
+				alert('Пустая строка!');
+				console.log(spanItem);
+				spanItem.innerHTML = item.value;
+			} else {
+				item.value = spanItem.innerHTML;
+				this.addToStorage();	
+			}
 		}
 	}
 	
